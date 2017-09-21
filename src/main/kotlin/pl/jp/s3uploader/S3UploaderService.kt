@@ -26,4 +26,11 @@ class S3UploaderService(s3UploaderProperties: S3UploaderProperties) {
 
         s3Client.putObject(request)
     }
+
+    fun download(fileName: String): File {
+        val s3Object = s3Client.getObject(bucket, fileName)
+        return File(s3Object.objectContent, s3Object.objectMetadata.contentLength)
+    }
 }
+
+data class File(val inputStream: InputStream, val size: Long)
