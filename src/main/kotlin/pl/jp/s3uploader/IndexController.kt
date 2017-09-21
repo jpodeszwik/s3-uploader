@@ -1,16 +1,12 @@
 package pl.jp.s3uploader
 
-import org.springframework.stereotype.Component
-import javax.ws.rs.GET
-import javax.ws.rs.Path
-import javax.ws.rs.Produces
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.RestController
 
-@Path("/")
-@Produces("application/json")
-@Component
+@RestController
 class IndexController {
 
-    @GET
+    @GetMapping
     fun getName(): ApplicationName {
         return ApplicationName("s3-uploader")
     }

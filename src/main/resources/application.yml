@@ -1,0 +1,2 @@
+pl.jp.s3uploader:
+  outputDir: ${OUTPUT_DIR:/tmp}
