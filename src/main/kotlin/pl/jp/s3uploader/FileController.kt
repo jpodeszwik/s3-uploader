@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.multipart.MultipartFile
 
 @RestController
-class UploadController(val s3UploaderService: S3UploaderService) {
+class FileController(val s3UploaderService: S3UploaderService) {
 
     @PostMapping("files")
     fun uploadFile(
