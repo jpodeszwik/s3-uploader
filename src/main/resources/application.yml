@@ -6,3 +6,6 @@ pl.jp.s3uploader:
   s3AccessKey: ${S3_ACCESS_KEY}
   s3SecretKey: ${S3_SECRET_KEY}
   s3Bucket: ${S3_BUCKET}
+
+  username: ${USER_NAME}
+  password: ${USER_PASSWORD}
