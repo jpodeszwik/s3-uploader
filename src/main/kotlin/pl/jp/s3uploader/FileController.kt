@@ -1,5 +1,6 @@
 package pl.jp.s3uploader
 
+import org.apache.commons.io.FilenameUtils
 import org.springframework.core.io.InputStreamResource
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
@@ -9,18 +10,30 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.multipart.MultipartFile
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder
+import java.net.URI
+import java.util.*
+
 
 @RestController
 class FileController(val s3UploaderService: S3UploaderService) {
 
     @PostMapping("files")
     fun uploadFile(
-            @RequestParam("file") file: MultipartFile,
-            @RequestParam("fileName") fileName: String): String {
+            @RequestParam("file") file: MultipartFile): ResponseEntity<CreatedResponse> {
+
+        val baseFileName = UUID.randomUUID().toString()
+        val extension = FilenameUtils.getExtension(file.originalFilename)
+
+        val fileName = if (extension.isEmpty()) baseFileName else "$baseFileName.$extension"
 
         s3UploaderService.upload(fileName, file.inputStream, file.size)
 
-        return "success"
+        val location = ServletUriComponentsBuilder
+                .fromCurrentRequest().queryParam("fileName", fileName)
+                .build().toUri()
+
+        return ResponseEntity.created(location).body(CreatedResponse(location))
     }
 
     @GetMapping("files")
@@ -34,3 +47,5 @@ class FileController(val s3UploaderService: S3UploaderService) {
         return ResponseEntity(inputStreamResource, httpHeaders, HttpStatus.OK)
     }
 }
+
+data class CreatedResponse(val location: URI)
