@@ -4,33 +4,36 @@ import com.amazonaws.auth.AWSStaticCredentialsProvider
 import com.amazonaws.auth.BasicAWSCredentials
 import com.amazonaws.services.s3.AmazonS3
 import com.amazonaws.services.s3.AmazonS3ClientBuilder
-import com.amazonaws.services.s3.model.ObjectMetadata
-import com.amazonaws.services.s3.model.PutObjectRequest
+import com.amazonaws.services.s3.model.*
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.io.InputStream
 
+
 @Service
-class S3UploaderService(s3UploaderProperties: S3UploaderProperties) {
-    private final val bucket = s3UploaderProperties.s3Bucket
+class S3UploaderService {
+    val log: Logger = LoggerFactory.getLogger(S3UploaderService::class.java)
 
-    private final val awsCredentials = BasicAWSCredentials(s3UploaderProperties.s3AccessKey, s3UploaderProperties.s3SecretKey)
-    private final val s3Client: AmazonS3 = AmazonS3ClientBuilder.standard()
-            .withCredentials(AWSStaticCredentialsProvider(awsCredentials))
-            .build()
+    fun upload(bucket: String, accessKey: String, secretKey: String,
+               targetPath: String, inputStream: InputStream, fileSize: Long) {
+        log.info("Uploading $targetPath in bucket $bucket")
 
-    fun upload(fileName: String, inputStream: InputStream, fileSize: Long) {
+        val awsCredentials = BasicAWSCredentials(accessKey, secretKey)
+
+        val s3Client: AmazonS3 = AmazonS3ClientBuilder.standard()
+                .withCredentials(AWSStaticCredentialsProvider(awsCredentials))
+                .build()
+
         val metadata = ObjectMetadata()
         metadata.contentLength = fileSize
 
-        val request = PutObjectRequest(bucket, fileName, inputStream, metadata)
+        val acl = AccessControlList()
+        acl.grantPermission(GroupGrantee.AllUsers, Permission.Read)
+
+        val request = PutObjectRequest(bucket, targetPath, inputStream, metadata)
+                .withAccessControlList(acl)
 
         s3Client.putObject(request)
     }
-
-    fun download(fileName: String): File {
-        val s3Object = s3Client.getObject(bucket, fileName)
-        return File(s3Object.objectContent, s3Object.objectMetadata.contentLength)
-    }
 }
-
-data class File(val inputStream: InputStream, val size: Long)
